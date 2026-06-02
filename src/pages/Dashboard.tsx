@@ -219,12 +219,12 @@ function getHearingBorderColor(status: string, isCurrent: boolean) {
 function StatCard({ icon: Icon, label, value, color, iconBg }: { icon: React.ElementType; label: string; value: string | number; color: string; iconBg: string }) {
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
+      <div className={`w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
         <Icon className={`w-5 h-5 ${color}`} />
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-gray-500 font-medium">{label}</p>
-        <p className="text-xl font-bold text-gray-900 leading-tight truncate">{value}</p>
+        <p className="text-xs text-gray-500 font-medium leading-tight">{label}</p>
+        <p className="text-lg md:text-xl font-bold text-gray-900 leading-tight truncate">{value}</p>
       </div>
     </div>
   )
@@ -246,7 +246,6 @@ export default function Dashboard() {
   const stats = useStats()
   const pendingCollections = usePendingCollections() ?? []
 
-  // All enriched queries read directly from DB — no live-array deps to avoid infinite loops
   const enrichedTimeline = useLiveQuery(async () => {
     const entries = await db.timeline.orderBy('createdAt').reverse().limit(8).toArray()
     return Promise.all(entries.map(async (entry) => {
@@ -310,56 +309,57 @@ export default function Dashboard() {
   const quickActions = [
     { label: 'New Client', icon: UserPlus, modal: 'client' as ModalType, cls: 'text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-200' },
     { label: 'New Case', icon: FolderPlus, modal: 'case' as ModalType, cls: 'text-violet-600 bg-violet-50 hover:bg-violet-100 border-violet-200' },
-    { label: 'Add Hearing', icon: CalendarPlus, modal: 'hearing' as ModalType, cls: 'text-green-600 bg-green-50 hover:bg-green-100 border-green-200' },
-    { label: 'Add Note', icon: FileText, modal: 'note' as ModalType, cls: 'text-orange-600 bg-orange-50 hover:bg-orange-100 border-orange-200' },
-    { label: 'Add Payment', icon: CreditCard, modal: 'payment' as ModalType, cls: 'text-rose-600 bg-rose-50 hover:bg-rose-100 border-rose-200' },
+    { label: 'Hearing', icon: CalendarPlus, modal: 'hearing' as ModalType, cls: 'text-green-600 bg-green-50 hover:bg-green-100 border-green-200' },
+    { label: 'Note', icon: FileText, modal: 'note' as ModalType, cls: 'text-orange-600 bg-orange-50 hover:bg-orange-100 border-orange-200' },
+    { label: 'Payment', icon: CreditCard, modal: 'payment' as ModalType, cls: 'text-rose-600 bg-rose-50 hover:bg-rose-100 border-rose-200' },
   ]
 
   return (
-    <div className="space-y-6 pb-8">
-      {/* Header + Quick Actions */}
+    <div className="space-y-4 md:space-y-6 pb-4">
+      {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-0.5">{format(now, 'EEEE, dd MMMM yyyy')}</p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* Quick Actions — horizontal scroll on mobile */}
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 w-full md:w-auto scrollbar-hide">
           {quickActions.map(({ label, icon: Icon, modal, cls }) => (
             <button key={label} onClick={() => setOpenModal(modal)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${cls}`}>
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors flex-shrink-0 min-h-[44px] ${cls}`}>
               <Icon className="w-4 h-4" />
-              <span className="hidden md:inline">{label}</span>
+              <span className="whitespace-nowrap">{label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats Row — 2 cols on mobile, 4 on desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatCard icon={Briefcase} label="Active Cases" value={stats?.activeCases ?? 0} color="text-blue-600" iconBg="bg-blue-100" />
         <StatCard icon={Calendar} label="Today's Hearings" value={stats?.todayHearings ?? 0} color="text-green-600" iconBg="bg-green-100" />
         <StatCard icon={IndianRupee} label="Pending Fees" value={stats ? formatCurrency(stats.pendingFees) : '...'} color="text-red-600" iconBg="bg-red-100" />
         <StatCard icon={TrendingUp} label="New This Month" value={stats?.newCasesThisMonth ?? 0} color="text-purple-600" iconBg="bg-purple-100" />
       </div>
 
-      {/* Main 3-col grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Today's Schedule - takes 2 cols */}
+      {/* Main grid — 1 col on mobile, 3-col on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        {/* Today's Schedule — full width on mobile, 2 cols on desktop */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between px-4 md:px-5 py-3 md:py-4 border-b border-gray-100">
             <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-blue-500" />
-              <h2 className="text-base font-semibold text-gray-900">Today's Schedule</h2>
+              <Calendar className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />
+              <h2 className="text-sm md:text-base font-semibold text-gray-900">Today's Schedule</h2>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-xs">{enrichedTodayHearings?.length ?? 0} hearing{(enrichedTodayHearings?.length ?? 0) !== 1 ? 's' : ''}</Badge>
-              <button onClick={() => setOpenModal('hearing')} className="p-1 rounded-lg hover:bg-gray-100 transition-colors"><Plus className="w-4 h-4 text-gray-500" /></button>
+              <button onClick={() => setOpenModal('hearing')} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"><Plus className="w-4 h-4 text-gray-500" /></button>
             </div>
           </div>
           {(!enrichedTodayHearings || enrichedTodayHearings.length === 0) ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4"><Calendar className="w-8 h-8 text-gray-400" /></div>
-              <p className="text-gray-600 font-semibold text-lg">No hearings today</p>
+            <div className="flex flex-col items-center justify-center py-12 md:py-16 text-center">
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4"><Calendar className="w-7 h-7 md:w-8 md:h-8 text-gray-400" /></div>
+              <p className="text-gray-600 font-semibold text-base md:text-lg">No hearings today</p>
               <p className="text-gray-400 text-sm mt-1 mb-4">Your schedule is clear for today.</p>
               <Button variant="outline" size="sm" onClick={() => setOpenModal('hearing')}><Plus className="w-4 h-4 mr-1.5" />Schedule a Hearing</Button>
             </div>
@@ -369,17 +369,18 @@ export default function Dashboard() {
                 const isCurrent = isCurrentHearing(h)
                 return (
                   <div key={h.id} onClick={() => h.caseId && h.clientId && navigate(`/clients/${h.clientId}/cases/${h.caseId}`)}
-                    className={`flex items-center gap-4 px-5 py-4 border-l-[3px] cursor-pointer hover:brightness-95 transition-all ${getHearingBorderColor(h.status, isCurrent)}`}>
-                    <div className="text-center w-16 flex-shrink-0">
-                      <p className="text-base font-bold text-gray-900 leading-none">{formatTime(h.time)}</p>
+                    className={`flex items-center gap-3 md:gap-4 px-4 md:px-5 py-3 md:py-4 border-l-[3px] cursor-pointer hover:brightness-95 transition-all ${getHearingBorderColor(h.status, isCurrent)}`}>
+                    <div className="text-center w-14 md:w-16 flex-shrink-0">
+                      <p className="text-sm md:text-base font-bold text-gray-900 leading-none">{formatTime(h.time)}</p>
                       {isCurrent && <span className="text-xs font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-full mt-1 inline-block">LIVE</span>}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 truncate">{h.clientName}</p>
-                      <p className="text-sm text-gray-500 truncate">{h.caseName}</p>
-                      {h.courtName && <p className="text-xs text-gray-400 mt-0.5 truncate">{h.courtName}</p>}
+                      <p className="font-semibold text-gray-900 truncate text-sm md:text-base">{h.clientName}</p>
+                      <p className="text-xs md:text-sm text-gray-500 truncate">{h.caseName}</p>
+                      {/* Court name hidden on mobile to save space */}
+                      {h.courtName && <p className="text-xs text-gray-400 mt-0.5 truncate hidden sm:block">{h.courtName}</p>}
                     </div>
-                    <Badge className={`text-xs flex-shrink-0 border ${getHearingStatusColor(h.status)}`}>{h.status}</Badge>
+                    <Badge className={`text-xs flex-shrink-0 border hidden sm:inline-flex ${getHearingStatusColor(h.status)}`}>{h.status}</Badge>
                     <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
                   </div>
                 )
@@ -388,23 +389,23 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Right: Next Hearing + Collections */}
+        {/* Right column: Next Hearing + Collections */}
         <div className="space-y-4">
           {/* Next Hearing Card */}
           {nextHearing ? (
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-5 text-white shadow-md">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl p-4 md:p-5 text-white shadow-md">
               <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-2">Next Hearing</p>
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0 pr-3">
-                  <p className="text-xl font-bold truncate">{nextHearing.clientName}</p>
+                  <p className="text-lg md:text-xl font-bold truncate">{nextHearing.clientName}</p>
                   <p className="text-blue-100 text-sm truncate mt-0.5">{nextHearing.caseName}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-2xl font-bold">{formatTime(nextHearing.time)}</p>
+                  <p className="text-xl md:text-2xl font-bold">{formatTime(nextHearing.time)}</p>
                   <p className="text-blue-200 text-xs">{isToday(new Date(nextHearing.date)) ? 'Today' : formatDate(nextHearing.date)}</p>
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-white/20 flex items-center gap-2">
+              <div className="mt-3 md:mt-4 pt-3 border-t border-white/20 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-blue-200 flex-shrink-0" />
                 <span className="text-blue-100 text-sm">
                   {nextHearing.minsUntil < 60 ? `Starts in ${nextHearing.minsUntil} min` : `Starts in ${Math.round(nextHearing.minsUntil / 60)} hr`}
@@ -412,7 +413,7 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-5 text-center">
+            <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-4 md:p-5 text-center">
               <Calendar className="w-8 h-8 text-gray-400 mx-auto mb-2" />
               <p className="text-gray-600 font-medium text-sm">No upcoming hearings</p>
             </div>
@@ -422,7 +423,7 @@ export default function Dashboard() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <div className="flex items-center gap-2"><IndianRupee className="w-4 h-4 text-red-500" /><h3 className="text-sm font-semibold text-gray-900">Pending Collections</h3></div>
-              <button onClick={() => navigate('/payments')} className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-0.5">All <ChevronRight className="w-3 h-3" /></button>
+              <button onClick={() => navigate('/payments')} className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-0.5 min-h-[36px]">All <ChevronRight className="w-3 h-3" /></button>
             </div>
             {(!pendingCollections || pendingCollections.length === 0) ? (
               <div className="py-8 text-center"><CheckCircle2 className="w-8 h-8 text-green-400 mx-auto mb-2" /><p className="text-sm text-gray-500">All fees collected!</p></div>
@@ -436,7 +437,8 @@ export default function Dashboard() {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{client.name}</p>
-                      <p className="text-xs text-gray-400">{daysOutstanding}d outstanding</p>
+                      {/* Days outstanding hidden on mobile */}
+                      <p className="text-xs text-gray-400 hidden sm:block">{daysOutstanding}d outstanding</p>
                     </div>
                     <span className="text-sm font-semibold text-red-600 flex-shrink-0">{formatCurrency(pending)}</span>
                   </div>
@@ -448,27 +450,27 @@ export default function Dashboard() {
       </div>
 
       {/* Bottom: Tasks + Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Urgent Tasks */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <div className="flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-orange-500" /><h2 className="text-base font-semibold text-gray-900">Urgent Tasks</h2></div>
+          <div className="flex items-center justify-between px-4 md:px-5 py-3 md:py-4 border-b border-gray-100">
+            <div className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-orange-500" /><h2 className="text-sm md:text-base font-semibold text-gray-900">Urgent Tasks</h2></div>
             <Badge variant="outline" className="text-xs text-orange-600 border-orange-200 bg-orange-50">
               {enrichedTasks?.length ?? 0} pending
             </Badge>
           </div>
           {(!enrichedTasks || enrichedTasks.length === 0) ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <CheckCircle2 className="w-12 h-12 text-green-400 mb-3" />
+            <div className="flex flex-col items-center justify-center py-10 md:py-12 text-center">
+              <CheckCircle2 className="w-10 h-10 md:w-12 md:h-12 text-green-400 mb-3" />
               <p className="text-gray-600 font-medium">No urgent tasks</p>
               <p className="text-gray-400 text-sm">You're all caught up!</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
               {enrichedTasks.map((task) => (
-                <div key={task.id} className="flex items-center gap-3 px-5 py-3.5 group">
+                <div key={task.id} className="flex items-center gap-3 px-4 md:px-5 py-3.5 group">
                   <button onClick={async () => { if (task.id) { await updateTask(task.id, { status: 'Completed' }); toast({ title: 'Task completed' }) } }}
-                    className="w-5 h-5 rounded-full border-2 border-gray-300 hover:border-green-500 hover:bg-green-500 flex items-center justify-center flex-shrink-0 transition-colors group-hover:scale-110">
+                    className="w-6 h-6 rounded-full border-2 border-gray-300 hover:border-green-500 hover:bg-green-500 flex items-center justify-center flex-shrink-0 transition-colors group-hover:scale-110">
                     <CheckCircle2 className="w-3 h-3 text-transparent group-hover:text-white" />
                   </button>
                   <div className="flex-1 min-w-0">
@@ -493,20 +495,20 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100">
-            <Clock className="w-5 h-5 text-gray-400" />
-            <h2 className="text-base font-semibold text-gray-900">Recent Activity</h2>
+          <div className="flex items-center gap-2 px-4 md:px-5 py-3 md:py-4 border-b border-gray-100">
+            <Clock className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
+            <h2 className="text-sm md:text-base font-semibold text-gray-900">Recent Activity</h2>
           </div>
           {(!enrichedTimeline || enrichedTimeline.length === 0) ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <AlertCircle className="w-12 h-12 text-gray-300 mb-3" />
+            <div className="flex flex-col items-center justify-center py-10 md:py-12 text-center">
+              <AlertCircle className="w-10 h-10 md:w-12 md:h-12 text-gray-300 mb-3" />
               <p className="text-gray-500 font-medium">No recent activity</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
               {enrichedTimeline.map((entry, i) => (
                 <div key={entry.id ?? i} onClick={() => entry.caseId && entry.clientId && navigate(`/clients/${entry.clientId}/cases/${entry.caseId}`)}
-                  className="flex items-start gap-3 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors group">
+                  className="flex items-start gap-3 px-4 md:px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors group">
                   <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 text-sm">{getTimelineIcon(entry.type)}</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900">{entry.title}</p>
@@ -528,7 +530,7 @@ export default function Dashboard() {
       {/* Quick Action Modals */}
       {openModal && (
         <Dialog open={!!openModal} onOpenChange={open => !open && setOpenModal(null)}>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[100vw] w-full sm:max-w-lg h-full sm:h-auto rounded-none sm:rounded-xl overflow-y-auto sm:max-h-[90vh]">
             <DialogHeader>
               <DialogTitle>{modalMeta[openModal].title}</DialogTitle>
               <DialogDescription>{modalMeta[openModal].description}</DialogDescription>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Header from './Header'
+import BottomNav from './BottomNav'
 import {
   Dialog,
   DialogContent,
@@ -652,8 +653,8 @@ export default function Layout() {
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar />
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col ml-64 min-h-screen overflow-hidden">
+      {/* Main content — offset by sidebar on desktop */}
+      <div className="flex-1 flex flex-col lg:pl-64 min-h-screen overflow-hidden">
         <Header
           onAddClient={() => setOpenModal('client')}
           onAddCase={() => setOpenModal('case')}
@@ -661,15 +662,19 @@ export default function Layout() {
           onAddNote={() => setOpenModal('note')}
           onAddPayment={() => setOpenModal('payment')}
         />
-        <main className="flex-1 overflow-y-auto p-6">
+        {/* pb-16 reserves space for bottom nav on mobile */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 lg:pb-6">
           <Outlet />
         </main>
       </div>
 
+      {/* Bottom navigation for mobile */}
+      <BottomNav />
+
       {/* Global Modals */}
       {openModal && (
         <Dialog open={!!openModal} onOpenChange={(open) => !open && closeModal()}>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[100vw] w-full sm:max-w-lg h-full sm:h-auto rounded-none sm:rounded-xl overflow-y-auto sm:max-h-[90vh]">
             <DialogHeader>
               <DialogTitle>{modalMeta[openModal].title}</DialogTitle>
               <DialogDescription>{modalMeta[openModal].description}</DialogDescription>

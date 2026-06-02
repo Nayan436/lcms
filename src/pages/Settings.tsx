@@ -67,22 +67,23 @@ function ProfileTab() {
         <p className="text-sm text-gray-500">This information will appear in generated documents and reports.</p>
       </div>
       <Separator />
-      <div className="grid grid-cols-2 gap-5">
-        <div className="col-span-2 md:col-span-1">
+      {/* Single column on mobile, 2 cols on md+ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+        <div>
           <Label>Lawyer / Advocate Name</Label>
-          <Input className="mt-1.5" placeholder="Adv. Rajesh Sharma" value={form.lawyerName} onChange={e => setForm(f => ({ ...f, lawyerName: e.target.value }))} />
+          <Input className="mt-1.5 h-11" placeholder="Adv. Rajesh Sharma" value={form.lawyerName} onChange={e => setForm(f => ({ ...f, lawyerName: e.target.value }))} />
         </div>
-        <div className="col-span-2 md:col-span-1">
+        <div>
           <Label>Phone Number</Label>
-          <Input className="mt-1.5" placeholder="+91 98765 43210" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+          <Input className="mt-1.5 h-11" placeholder="+91 98765 43210" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
         </div>
-        <div className="col-span-2 md:col-span-1">
+        <div>
           <Label>Email Address</Label>
-          <Input className="mt-1.5" type="email" placeholder="advocate@example.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+          <Input className="mt-1.5 h-11" type="email" placeholder="advocate@example.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
         </div>
-        <div className="col-span-2 md:col-span-1">
+        <div>
           <Label>Bar Council No.</Label>
-          <Input className="mt-1.5" placeholder="MAH/1234/2010" value={form.barCouncilNo} onChange={e => setForm(f => ({ ...f, barCouncilNo: e.target.value }))} />
+          <Input className="mt-1.5 h-11" placeholder="MAH/1234/2010" value={form.barCouncilNo} onChange={e => setForm(f => ({ ...f, barCouncilNo: e.target.value }))} />
         </div>
       </div>
       <Separator />
@@ -90,18 +91,18 @@ function ProfileTab() {
         <h3 className="text-base font-semibold text-gray-900 mb-1">Office Information</h3>
         <p className="text-sm text-gray-500">Your law firm or office details.</p>
       </div>
-      <div className="grid grid-cols-2 gap-5">
-        <div className="col-span-2 md:col-span-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+        <div>
           <Label>Office / Firm Name</Label>
-          <Input className="mt-1.5" placeholder="Sharma & Associates" value={form.officeName} onChange={e => setForm(f => ({ ...f, officeName: e.target.value }))} />
+          <Input className="mt-1.5 h-11" placeholder="Sharma & Associates" value={form.officeName} onChange={e => setForm(f => ({ ...f, officeName: e.target.value }))} />
         </div>
-        <div className="col-span-2">
+        <div className="md:col-span-2">
           <Label>Office Address</Label>
-          <Input className="mt-1.5" placeholder="123, Law Chambers, Court Road, Mumbai - 400001" value={form.officeAddress} onChange={e => setForm(f => ({ ...f, officeAddress: e.target.value }))} />
+          <Input className="mt-1.5 h-11" placeholder="123, Law Chambers, Court Road, Mumbai - 400001" value={form.officeAddress} onChange={e => setForm(f => ({ ...f, officeAddress: e.target.value }))} />
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700">
+      <div className="flex items-center gap-3 flex-wrap">
+        <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 min-h-[44px] w-full sm:w-auto">
           <Save className="w-4 h-4 mr-1.5" />{loading ? 'Saving...' : 'Save Profile'}
         </Button>
         {saved && (
@@ -165,10 +166,10 @@ function NotificationsTab() {
         <p className="text-sm text-gray-500">Configure when you receive notifications for upcoming hearings.</p>
       </div>
       <Separator />
-      <div className="space-y-4">
+      <div className="space-y-2">
         {items.map(({ key, label, description, disabled }) => (
-          <div key={key} className={`flex items-center justify-between py-3 ${disabled ? 'opacity-50' : ''}`}>
-            <div>
+          <div key={key} className={`flex items-center justify-between py-3 min-h-[56px] ${disabled ? 'opacity-50' : ''}`}>
+            <div className="flex-1 pr-4">
               <p className="text-sm font-medium text-gray-900">{label}</p>
               <p className="text-xs text-gray-500 mt-0.5">{description}</p>
             </div>
@@ -180,7 +181,7 @@ function NotificationsTab() {
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-2">Test Notification</h3>
         <p className="text-xs text-gray-500 mb-3">Click the button below to verify browser notifications are working correctly.</p>
-        <Button variant="outline" onClick={testNotification} className="text-sm">
+        <Button variant="outline" onClick={testNotification} className="text-sm min-h-[44px] w-full sm:w-auto">
           <Bell className="w-4 h-4 mr-1.5" />Send Test Notification
         </Button>
       </div>
@@ -264,7 +265,6 @@ function DataTab() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      {/* Storage & Records */}
       <div>
         <h3 className="text-base font-semibold text-gray-900 mb-1">Database Overview</h3>
         <p className="text-sm text-gray-500">Current data stored in your local IndexedDB database.</p>
@@ -279,7 +279,6 @@ function DataTab() {
         ))}
       </div>
 
-      {/* Storage Usage */}
       {storageEstimate && (
         <div className="bg-gray-50 rounded-xl border border-gray-100 p-4">
           <div className="flex items-center justify-between mb-2">
@@ -295,34 +294,31 @@ function DataTab() {
 
       <Separator />
 
-      {/* Export */}
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-1">Export Data</h3>
         <p className="text-xs text-gray-500 mb-3">Download all your data as a JSON file for backup or transfer.</p>
-        <Button variant="outline" onClick={handleExport} disabled={exportLoading}>
+        <Button variant="outline" onClick={handleExport} disabled={exportLoading} className="min-h-[44px] w-full sm:w-auto">
           <Download className="w-4 h-4 mr-1.5" />{exportLoading ? 'Exporting...' : 'Export All Data'}
         </Button>
       </div>
 
       <Separator />
 
-      {/* Reset */}
       <div className="rounded-xl border border-red-100 bg-red-50/50 p-4">
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-          <div>
+          <div className="flex-1">
             <h3 className="text-sm font-semibold text-red-700 mb-1">Reset Database</h3>
             <p className="text-xs text-red-600 mb-3">This will permanently delete ALL data and re-seed with demo data. This action cannot be undone.</p>
-            <Button variant="destructive" size="sm" onClick={() => setShowReset(true)}>
+            <Button variant="destructive" size="sm" onClick={() => setShowReset(true)} className="min-h-[44px] w-full sm:w-auto">
               <RefreshCw className="w-4 h-4 mr-1.5" />Reset & Re-seed Demo Data
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Reset Confirm Dialog */}
       <Dialog open={showReset} onOpenChange={open => !open && setShowReset(false)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-[100vw] w-full sm:max-w-sm rounded-none sm:rounded-xl h-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-700">
               <Trash2 className="w-5 h-5" />Reset Database
@@ -361,12 +357,12 @@ function AboutTab() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <div className="flex items-center gap-5">
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
-          <span className="text-2xl text-white font-bold">⚖</span>
+      <div className="flex items-center gap-4 md:gap-5">
+        <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+          <span className="text-xl md:text-2xl text-white font-bold">⚖</span>
         </div>
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Legal Case Management System</h2>
+          <h2 className="text-lg md:text-xl font-bold text-gray-900">Legal Case Management System</h2>
           <p className="text-gray-500 text-sm mt-0.5">Version {APP_VERSION} — Built for Indian Advocates</p>
         </div>
       </div>
@@ -404,29 +400,32 @@ function AboutTab() {
 // ─── Settings Page ───────────────────────────────────────────────────────────
 export default function Settings() {
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-4 md:space-y-6 pb-4">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Settings</h1>
         <p className="text-sm text-gray-500 mt-0.5">Manage your profile, notifications, and application data</p>
       </div>
 
       <Tabs defaultValue="profile">
-        <TabsList className="bg-white border border-gray-200 p-1 rounded-xl shadow-sm">
-          <TabsTrigger value="profile" className="rounded-lg">
-            <User className="w-4 h-4 mr-1.5" />Profile
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="rounded-lg">
-            <Bell className="w-4 h-4 mr-1.5" />Notifications
-          </TabsTrigger>
-          <TabsTrigger value="data" className="rounded-lg">
-            <Database className="w-4 h-4 mr-1.5" />Data
-          </TabsTrigger>
-          <TabsTrigger value="about" className="rounded-lg">
-            <Info className="w-4 h-4 mr-1.5" />About
-          </TabsTrigger>
-        </TabsList>
+        {/* Scrollable tabs on mobile */}
+        <div className="overflow-x-auto -mx-4 px-4">
+          <TabsList className="bg-white border border-gray-200 p-1 rounded-xl shadow-sm w-max min-w-full">
+            <TabsTrigger value="profile" className="rounded-lg whitespace-nowrap">
+              <User className="w-4 h-4 mr-1.5" />Profile
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="rounded-lg whitespace-nowrap">
+              <Bell className="w-4 h-4 mr-1.5" />Notifications
+            </TabsTrigger>
+            <TabsTrigger value="data" className="rounded-lg whitespace-nowrap">
+              <Database className="w-4 h-4 mr-1.5" />Data
+            </TabsTrigger>
+            <TabsTrigger value="about" className="rounded-lg whitespace-nowrap">
+              <Info className="w-4 h-4 mr-1.5" />About
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <div className="mt-6 bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className="mt-4 md:mt-6 bg-white rounded-xl border border-gray-100 shadow-sm p-4 md:p-6">
           <TabsContent value="profile"><ProfileTab /></TabsContent>
           <TabsContent value="notifications"><NotificationsTab /></TabsContent>
           <TabsContent value="data"><DataTab /></TabsContent>

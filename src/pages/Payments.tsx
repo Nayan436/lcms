@@ -24,13 +24,13 @@ type PaymentMode = 'Cash' | 'UPI' | 'Bank Transfer' | 'Cheque' | 'Other'
 
 function StatCard({ label, value, icon: Icon, color, bgColor }: { label: string; value: string; icon: React.ElementType; color: string; bgColor: string }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${bgColor}`}>
-        <Icon className={`w-6 h-6 ${color}`} />
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+      <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${bgColor}`}>
+        <Icon className={`w-5 h-5 md:w-6 md:h-6 ${color}`} />
       </div>
       <div>
         <p className="text-xs text-gray-500 font-medium">{label}</p>
-        <p className="text-xl font-bold text-gray-900 leading-tight">{value}</p>
+        <p className="text-lg md:text-xl font-bold text-gray-900 leading-tight">{value}</p>
       </div>
     </div>
   )
@@ -123,7 +123,7 @@ export default function Payments() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
 
-  // Enrich payments with client/case names — read from DB directly (no live array dependency)
+  // Enrich payments with client/case names
   const enrichedPayments = useLiveQuery(async () => {
     const allPayments = await db.payments.orderBy('date').reverse().toArray()
     return Promise.all(allPayments.map(async (p) => {
@@ -174,21 +174,26 @@ export default function Payments() {
   }
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-4 md:space-y-6 pb-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Payments</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Track fees, collections, and outstanding amounts</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Payments</h1>
+          <p className="text-sm text-gray-500 mt-0.5 hidden sm:block">Track fees, collections, and outstanding amounts</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handlePrint}><Printer className="w-4 h-4 mr-1.5" />Print</Button>
-          <Button onClick={() => handleQuickPayment()} className="bg-blue-600 hover:bg-blue-700"><Plus className="w-4 h-4 mr-1.5" />Record Payment</Button>
+          <Button variant="outline" size="sm" onClick={handlePrint} className="hidden sm:flex min-h-[44px]">
+            <Printer className="w-4 h-4 mr-1.5" />Print
+          </Button>
+          <Button onClick={() => handleQuickPayment()} className="bg-blue-600 hover:bg-blue-700 min-h-[44px]">
+            <Plus className="w-4 h-4 md:mr-1.5" />
+            <span className="hidden md:inline">Record Payment</span>
+          </Button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats — 2 cols on mobile, 4 on desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <StatCard label="Total Fees" value={stats ? formatCurrency(stats.totalFees) : '...'} icon={IndianRupee} color="text-gray-600" bgColor="bg-gray-100" />
         <StatCard label="Collected" value={stats ? formatCurrency(stats.collected) : '...'} icon={TrendingUp} color="text-green-600" bgColor="bg-green-100" />
         <StatCard label="Pending" value={stats ? formatCurrency(stats.pending) : '...'} icon={TrendingDown} color="text-red-600" bgColor="bg-red-100" />
@@ -197,18 +202,20 @@ export default function Payments() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
-        <TabsList className="bg-white border border-gray-200 p-1 rounded-xl shadow-sm">
-          <TabsTrigger value="overview" className="rounded-lg">Overview</TabsTrigger>
-          <TabsTrigger value="all" className="rounded-lg">All Payments</TabsTrigger>
-          <TabsTrigger value="outstanding" className="rounded-lg">Outstanding</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4">
+          <TabsList className="bg-white border border-gray-200 p-1 rounded-xl shadow-sm w-max min-w-full">
+            <TabsTrigger value="overview" className="rounded-lg whitespace-nowrap">Overview</TabsTrigger>
+            <TabsTrigger value="all" className="rounded-lg whitespace-nowrap">All Payments</TabsTrigger>
+            <TabsTrigger value="outstanding" className="rounded-lg whitespace-nowrap">Outstanding</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="mt-5 space-y-5">
+        <TabsContent value="overview" className="mt-4 md:mt-5 space-y-4 md:space-y-5">
           {/* Recent Payments */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h3 className="font-semibold text-gray-900">Recent Payments</h3>
+            <div className="flex items-center justify-between px-4 md:px-5 py-3 md:py-4 border-b border-gray-100">
+              <h3 className="font-semibold text-gray-900 text-sm md:text-base">Recent Payments</h3>
               <span className="text-xs text-gray-400">{enrichedPayments?.length ?? 0} total</span>
             </div>
             {(!enrichedPayments || enrichedPayments.length === 0) ? (
@@ -220,18 +227,18 @@ export default function Payments() {
               <div className="divide-y divide-gray-50">
                 {enrichedPayments.slice(0, 8).map(p => (
                   <div key={p.id} onClick={() => navigate(`/clients/${p.clientId}/cases/${p.caseId}`)}
-                    className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer transition-colors group">
-                    <Avatar className="w-9 h-9 flex-shrink-0">
+                    className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-3.5 md:py-4 hover:bg-gray-50 cursor-pointer transition-colors group">
+                    <Avatar className="w-8 h-8 md:w-9 md:h-9 flex-shrink-0">
                       <AvatarFallback className="bg-blue-100 text-blue-700 text-xs font-bold">{getInitials(p.clientName)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">{p.clientName}</p>
+                      <p className="font-medium text-gray-900 truncate text-sm group-hover:text-blue-600 transition-colors">{p.clientName}</p>
                       <p className="text-xs text-gray-400 truncate">{p.caseName}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="font-semibold text-green-600">{formatCurrency(p.amount)}</p>
+                      <p className="font-semibold text-green-600 text-sm">{formatCurrency(p.amount)}</p>
                       <div className="flex items-center gap-1.5 justify-end mt-0.5">
-                        <Badge variant="outline" className="text-xs">{p.paymentMode}</Badge>
+                        <Badge variant="outline" className="text-xs hidden sm:inline-flex">{p.paymentMode}</Badge>
                         <span className="text-xs text-gray-400">{formatDate(p.date)}</span>
                       </div>
                     </div>
@@ -243,8 +250,8 @@ export default function Payments() {
 
           {/* Outstanding Summary */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h3 className="font-semibold text-gray-900">Outstanding Clients</h3>
+            <div className="flex items-center justify-between px-4 md:px-5 py-3 md:py-4 border-b border-gray-100">
+              <h3 className="font-semibold text-gray-900 text-sm md:text-base">Outstanding Clients</h3>
               <span className="text-xs text-gray-400">{pendingCollections.length} clients with pending dues</span>
             </div>
             {pendingCollections.length === 0 ? (
@@ -256,17 +263,17 @@ export default function Payments() {
             ) : (
               <div className="divide-y divide-gray-50">
                 {pendingCollections.slice(0, 6).map(({ client, pending, daysOutstanding }) => (
-                  <div key={client.id} className="flex items-center gap-4 px-5 py-4">
-                    <Avatar className="w-9 h-9 flex-shrink-0">
+                  <div key={client.id} className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-4">
+                    <Avatar className="w-8 h-8 md:w-9 md:h-9 flex-shrink-0">
                       <AvatarFallback className="bg-red-100 text-red-700 text-xs font-bold">{getInitials(client.name)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{client.name}</p>
-                      <p className="text-xs text-gray-400">{daysOutstanding} days outstanding</p>
+                      <p className="font-medium text-gray-900 truncate text-sm">{client.name}</p>
+                      <p className="text-xs text-gray-400 hidden sm:block">{daysOutstanding} days outstanding</p>
                     </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
                       <span className="text-sm font-bold text-red-600">{formatCurrency(pending)}</span>
-                      <Button size="sm" variant="outline" className="text-xs h-7 px-2"
+                      <Button size="sm" variant="outline" className="text-xs h-9 px-2 min-h-[36px]"
                         onClick={() => handleQuickPayment(client.id)}>
                         <Plus className="w-3 h-3 mr-1" />Pay
                       </Button>
@@ -279,63 +286,89 @@ export default function Payments() {
         </TabsContent>
 
         {/* All Payments Tab */}
-        <TabsContent value="all" className="mt-5 space-y-4">
-          {/* Filters */}
+        <TabsContent value="all" className="mt-4 md:mt-5 space-y-4">
+          {/* Filters — stack on mobile, row on desktop */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="col-span-2 lg:col-span-1 relative">
+            <div className="flex flex-col md:grid md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input className="pl-9" placeholder="Search client, case..." value={search} onChange={e => setSearch(e.target.value)} />
+                <Input className="pl-9 h-11" placeholder="Search client, case..." value={search} onChange={e => setSearch(e.target.value)} />
               </div>
               <Select value={modeFilter} onValueChange={setModeFilter}>
-                <SelectTrigger><SelectValue placeholder="Payment mode" /></SelectTrigger>
+                <SelectTrigger className="h-11"><SelectValue placeholder="Payment mode" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Modes</SelectItem>
                   {PAYMENT_MODES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                 </SelectContent>
               </Select>
               <div>
-                <Input type="date" placeholder="From date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="text-sm" />
+                <Input type="date" placeholder="From date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="text-sm h-11" />
               </div>
               <div>
-                <Input type="date" placeholder="To date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="text-sm" />
+                <Input type="date" placeholder="To date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="text-sm h-11" />
               </div>
             </div>
           </div>
 
-          {/* Payments Table */}
+          {/* Mobile: card list. Desktop: table */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="grid grid-cols-12 gap-3 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            {/* Desktop table header */}
+            <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wide">
               <div className="col-span-2">Date</div>
               <div className="col-span-3">Client</div>
               <div className="col-span-3">Case</div>
               <div className="col-span-2 text-right">Amount</div>
               <div className="col-span-2">Mode</div>
             </div>
+
             {filtered.length === 0 ? (
               <div className="py-12 text-center">
                 <Search className="w-10 h-10 text-gray-300 mx-auto mb-3" />
                 <p className="text-gray-500">No payments found{search ? ` for "${search}"` : ''}</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-50">
-                {filtered.map(p => (
-                  <div key={p.id} onClick={() => navigate(`/clients/${p.clientId}/cases/${p.caseId}`)}
-                    className="grid grid-cols-12 gap-3 px-5 py-3.5 items-center hover:bg-gray-50 cursor-pointer transition-colors group text-sm">
-                    <div className="col-span-2 text-gray-500 text-xs">{formatDate(p.date)}</div>
-                    <div className="col-span-3 font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">{p.clientName}</div>
-                    <div className="col-span-3 text-gray-500 truncate">{p.caseName}</div>
-                    <div className="col-span-2 text-right font-semibold text-green-600">{formatCurrency(p.amount)}</div>
-                    <div className="col-span-2">
-                      <Badge variant="outline" className="text-xs">{p.paymentMode}</Badge>
-                      {p.remarks && <p className="text-xs text-gray-400 truncate mt-0.5 italic">{p.remarks}</p>}
+              <>
+                {/* Mobile card list */}
+                <div className="md:hidden divide-y divide-gray-100">
+                  {filtered.map(p => (
+                    <div key={p.id} onClick={() => navigate(`/clients/${p.clientId}/cases/${p.caseId}`)}
+                      className="flex items-center gap-3 px-4 py-4 hover:bg-gray-50 cursor-pointer transition-colors group">
+                      <Avatar className="w-9 h-9 flex-shrink-0">
+                        <AvatarFallback className="bg-blue-100 text-blue-700 text-xs font-bold">{getInitials(p.clientName)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate text-sm group-hover:text-blue-600">{p.clientName}</p>
+                        <p className="text-xs text-gray-400 truncate">{p.caseName}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <Badge variant="outline" className="text-xs">{p.paymentMode}</Badge>
+                          <span className="text-xs text-gray-400">{formatDate(p.date)}</span>
+                        </div>
+                      </div>
+                      <span className="text-sm font-semibold text-green-600 flex-shrink-0">{formatCurrency(p.amount)}</span>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+
+                {/* Desktop table rows */}
+                <div className="hidden md:block divide-y divide-gray-50">
+                  {filtered.map(p => (
+                    <div key={p.id} onClick={() => navigate(`/clients/${p.clientId}/cases/${p.caseId}`)}
+                      className="grid grid-cols-12 gap-3 px-5 py-3.5 items-center hover:bg-gray-50 cursor-pointer transition-colors group text-sm">
+                      <div className="col-span-2 text-gray-500 text-xs">{formatDate(p.date)}</div>
+                      <div className="col-span-3 font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">{p.clientName}</div>
+                      <div className="col-span-3 text-gray-500 truncate">{p.caseName}</div>
+                      <div className="col-span-2 text-right font-semibold text-green-600">{formatCurrency(p.amount)}</div>
+                      <div className="col-span-2">
+                        <Badge variant="outline" className="text-xs">{p.paymentMode}</Badge>
+                        {p.remarks && <p className="text-xs text-gray-400 truncate mt-0.5 italic">{p.remarks}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
             {filtered.length > 0 && (
-              <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center text-sm">
+              <div className="px-4 md:px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center text-sm">
                 <span className="text-gray-500">{filtered.length} payment{filtered.length !== 1 ? 's' : ''}</span>
                 <span className="font-bold text-gray-900">Total: {formatCurrency(filtered.reduce((s, p) => s + p.amount, 0))}</span>
               </div>
@@ -344,16 +377,17 @@ export default function Payments() {
         </TabsContent>
 
         {/* Outstanding Tab */}
-        <TabsContent value="outstanding" className="mt-5">
+        <TabsContent value="outstanding" className="mt-4 md:mt-5">
           {pendingCollections.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm py-20 text-center">
-              <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm py-16 md:py-20 text-center">
+              <CheckCircle2 className="w-14 h-14 md:w-16 md:h-16 text-green-400 mx-auto mb-4" />
               <p className="text-gray-600 font-semibold text-lg">All fees collected!</p>
               <p className="text-gray-400">No outstanding dues at this time.</p>
             </div>
           ) : (
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="grid grid-cols-12 gap-3 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              {/* Desktop table header */}
+              <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                 <div className="col-span-4">Client</div>
                 <div className="col-span-3 text-right">Pending Amount</div>
                 <div className="col-span-3 text-center">Days Outstanding</div>
@@ -361,35 +395,56 @@ export default function Payments() {
               </div>
               <div className="divide-y divide-gray-50">
                 {pendingCollections.map(({ client, pending, daysOutstanding }) => (
-                  <div key={client.id} className="grid grid-cols-12 gap-3 px-5 py-4 items-center hover:bg-gray-50 transition-colors">
-                    <div className="col-span-4 flex items-center gap-3">
+                  <div key={client.id}>
+                    {/* Mobile card */}
+                    <div className="md:hidden flex items-center gap-3 px-4 py-4">
                       <Avatar className="w-9 h-9 flex-shrink-0">
                         <AvatarFallback className="bg-red-100 text-red-700 text-sm font-bold">{getInitials(client.name)}</AvatarFallback>
                       </Avatar>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-gray-900 truncate">{client.name}</p>
-                        {client.mobile && <p className="text-xs text-gray-400">{client.mobile}</p>}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate text-sm">{client.name}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-base font-bold text-red-600">{formatCurrency(pending)}</span>
+                          <Badge className={`text-xs ${daysOutstanding > 30 ? 'bg-red-100 text-red-700 border-red-200' : daysOutstanding > 15 ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'}`}>
+                            {daysOutstanding}d
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                    <div className="col-span-3 text-right">
-                      <span className="text-lg font-bold text-red-600">{formatCurrency(pending)}</span>
-                    </div>
-                    <div className="col-span-3 text-center">
-                      <Badge className={`text-xs ${daysOutstanding > 30 ? 'bg-red-100 text-red-700 border-red-200' : daysOutstanding > 15 ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'}`}>
-                        {daysOutstanding} days
-                      </Badge>
-                    </div>
-                    <div className="col-span-2 flex justify-end">
-                      <Button size="sm" onClick={() => handleQuickPayment(client.id)} className="bg-green-600 hover:bg-green-700 text-xs">
-                        <Plus className="w-3.5 h-3.5 mr-1" />Payment
+                      <Button size="sm" onClick={() => handleQuickPayment(client.id)} className="bg-green-600 hover:bg-green-700 text-xs min-h-[44px]">
+                        <Plus className="w-3.5 h-3.5 mr-1" />Pay
                       </Button>
+                    </div>
+                    {/* Desktop row */}
+                    <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-4 items-center hover:bg-gray-50 transition-colors">
+                      <div className="col-span-4 flex items-center gap-3">
+                        <Avatar className="w-9 h-9 flex-shrink-0">
+                          <AvatarFallback className="bg-red-100 text-red-700 text-sm font-bold">{getInitials(client.name)}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-900 truncate">{client.name}</p>
+                          {client.mobile && <p className="text-xs text-gray-400">{client.mobile}</p>}
+                        </div>
+                      </div>
+                      <div className="col-span-3 text-right">
+                        <span className="text-lg font-bold text-red-600">{formatCurrency(pending)}</span>
+                      </div>
+                      <div className="col-span-3 text-center">
+                        <Badge className={`text-xs ${daysOutstanding > 30 ? 'bg-red-100 text-red-700 border-red-200' : daysOutstanding > 15 ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'}`}>
+                          {daysOutstanding} days
+                        </Badge>
+                      </div>
+                      <div className="col-span-2 flex justify-end">
+                        <Button size="sm" onClick={() => handleQuickPayment(client.id)} className="bg-green-600 hover:bg-green-700 text-xs">
+                          <Plus className="w-3.5 h-3.5 mr-1" />Payment
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="px-5 py-3 bg-red-50 border-t border-red-100 flex justify-between items-center">
+              <div className="px-4 md:px-5 py-3 bg-red-50 border-t border-red-100 flex justify-between items-center">
                 <span className="text-sm text-gray-600 font-medium">{pendingCollections.length} clients with pending dues</span>
-                <span className="text-base font-bold text-red-700">{formatCurrency(pendingCollections.reduce((s, c) => s + c.pending, 0))} total pending</span>
+                <span className="text-sm md:text-base font-bold text-red-700">{formatCurrency(pendingCollections.reduce((s, c) => s + c.pending, 0))} total</span>
               </div>
             </div>
           )}
@@ -398,7 +453,7 @@ export default function Payments() {
 
       {/* Add Payment Modal */}
       <Dialog open={showAdd} onOpenChange={open => !open && setShowAdd(false)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[100vw] w-full sm:max-w-lg h-full sm:h-auto rounded-none sm:rounded-xl overflow-y-auto sm:max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Record Payment</DialogTitle>
             <DialogDescription>Record a fee payment from a client.</DialogDescription>

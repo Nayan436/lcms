@@ -12,6 +12,7 @@ import {
   X,
   User,
   Scale,
+  Menu,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -56,6 +57,7 @@ export default function Header({ onAddClient, onAddCase, onAddHearing, onAddNote
   const [results, setResults] = useState<SearchResults>({ clients: [], cases: [] })
   const [searchOpen, setSearchOpen] = useState(false)
   const [newMenuOpen, setNewMenuOpen] = useState(false)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const searchRef = useRef<HTMLDivElement>(null)
@@ -102,12 +104,14 @@ export default function Header({ onAddClient, onAddCase, onAddHearing, onAddNote
 
   const handleClientClick = (client: Client) => {
     setSearchOpen(false)
+    setMobileSearchOpen(false)
     setQuery('')
     navigate(`/clients/${client.id}`)
   }
 
   const handleCaseClick = (c: Case) => {
     setSearchOpen(false)
+    setMobileSearchOpen(false)
     setQuery('')
     navigate(`/clients/${c.clientId}/cases/${c.id}`)
   }
@@ -120,138 +124,196 @@ export default function Header({ onAddClient, onAddCase, onAddHearing, onAddNote
     { label: 'Add Payment', icon: CreditCard, action: onAddPayment },
   ]
 
-  return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center px-6 gap-4 sticky top-0 z-30">
-      {/* Page Title */}
-      <h1 className="text-lg font-semibold text-gray-900 min-w-[140px]">
-        {getPageTitle(location.pathname)}
-      </h1>
-
-      {/* Global Search */}
-      <div ref={searchRef} className="relative flex-1 max-w-md">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-          <Input
-            type="text"
-            placeholder="Search clients, cases..."
-            value={query}
-            onChange={(e) => handleSearch(e.target.value)}
-            onFocus={() => query.length >= 2 && hasResults && setSearchOpen(true)}
-            className="pl-9 pr-9 h-9 bg-gray-50 border-gray-200 text-sm focus-visible:ring-blue-500"
-          />
-          {query && (
-            <button
-              onClick={() => { setQuery(''); setSearchOpen(false); setResults({ clients: [], cases: [] }) }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
+  const SearchDropdown = () => (
+    <>
+      {searchOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg border border-gray-200 shadow-lg z-50 overflow-hidden max-h-80 overflow-y-auto">
+          {loading && (
+            <div className="px-4 py-3 text-sm text-gray-400">Searching...</div>
           )}
-        </div>
-
-        {/* Search Dropdown */}
-        {searchOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg border border-gray-200 shadow-lg z-50 overflow-hidden max-h-80 overflow-y-auto">
-            {loading && (
-              <div className="px-4 py-3 text-sm text-gray-400">Searching...</div>
-            )}
-            {!loading && !hasResults && (
-              <div className="px-4 py-3 text-sm text-gray-400">No results found</div>
-            )}
-            {!loading && results.clients.length > 0 && (
-              <div>
-                <div className="px-3 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
-                  Clients
-                </div>
-                {results.clients.map((client) => (
-                  <button
-                    key={client.id}
-                    onClick={() => handleClientClick(client)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-blue-50 text-left transition-colors"
-                  >
-                    <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <User className="w-3.5 h-3.5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{client.name}</p>
-                      <p className="text-xs text-gray-400">{client.mobile}</p>
-                    </div>
-                  </button>
-                ))}
+          {!loading && !hasResults && (
+            <div className="px-4 py-3 text-sm text-gray-400">No results found</div>
+          )}
+          {!loading && results.clients.length > 0 && (
+            <div>
+              <div className="px-3 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
+                Clients
               </div>
-            )}
-            {!loading && results.cases.length > 0 && (
-              <div>
-                <div className="px-3 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
-                  Cases
-                </div>
-                {results.cases.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => handleCaseClick(c)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-blue-50 text-left transition-colors"
-                  >
-                    <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <Scale className="w-3.5 h-3.5 text-gray-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 truncate max-w-[220px]">{c.title}</p>
-                      <p className="text-xs text-gray-400">{c.courtName}{c.caseNumber ? ` · ${c.caseNumber}` : ''}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2 ml-auto">
-        {/* Notification Bell */}
-        <div className="relative">
-          <button
-            className="relative flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gray-100 transition-colors"
-            title="Upcoming Reminders"
-          >
-            <Bell className="w-4.5 h-4.5 text-gray-600" size={18} />
-            {upcomingCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] flex items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white px-1 leading-none">
-                {upcomingCount > 9 ? '9+' : upcomingCount}
-              </span>
-            )}
-          </button>
-        </div>
-
-        {/* New Button with dropdown */}
-        <div ref={newMenuRef} className="relative">
-          <Button
-            size="sm"
-            onClick={() => setNewMenuOpen((v) => !v)}
-            className="gap-1.5 h-9 px-3"
-          >
-            <Plus className="w-4 h-4" />
-            New
-          </Button>
-
-          {newMenuOpen && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-50 py-1 overflow-hidden">
-              {quickActions.map(({ label, icon: Icon, action }) => (
+              {results.clients.map((client) => (
                 <button
-                  key={label}
-                  onClick={() => {
-                    setNewMenuOpen(false)
-                    action()
-                  }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors text-left"
+                  key={client.id}
+                  onClick={() => handleClientClick(client)}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-blue-50 text-left transition-colors"
                 >
-                  <Icon className="w-4 h-4 flex-shrink-0" />
-                  {label}
+                  <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <User className="w-3.5 h-3.5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{client.name}</p>
+                    <p className="text-xs text-gray-400">{client.mobile}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+          {!loading && results.cases.length > 0 && (
+            <div>
+              <div className="px-3 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
+                Cases
+              </div>
+              {results.cases.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => handleCaseClick(c)}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-blue-50 text-left transition-colors"
+                >
+                  <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <Scale className="w-3.5 h-3.5 text-gray-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 truncate max-w-[220px]">{c.title}</p>
+                    <p className="text-xs text-gray-400">{c.courtName}{c.caseNumber ? ` · ${c.caseNumber}` : ''}</p>
+                  </div>
                 </button>
               ))}
             </div>
           )}
         </div>
-      </div>
-    </header>
+      )}
+    </>
+  )
+
+  return (
+    <>
+      {/* Mobile Search Overlay */}
+      {mobileSearchOpen && (
+        <div className="fixed inset-0 z-50 bg-white md:hidden flex flex-col">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200">
+            <div ref={searchRef} className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              <Input
+                type="text"
+                placeholder="Search clients, cases..."
+                value={query}
+                onChange={(e) => handleSearch(e.target.value)}
+                onFocus={() => query.length >= 2 && hasResults && setSearchOpen(true)}
+                className="pl-9 pr-9 h-11 bg-gray-50 border-gray-200 text-sm focus-visible:ring-blue-500"
+                autoFocus
+              />
+              {query && (
+                <button
+                  onClick={() => { setQuery(''); setSearchOpen(false); setResults({ clients: [], cases: [] }) }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+              <SearchDropdown />
+            </div>
+            <button
+              onClick={() => { setMobileSearchOpen(false); setQuery(''); setSearchOpen(false) }}
+              className="text-sm font-medium text-blue-600 flex-shrink-0 min-h-[44px] flex items-center"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      <header className="h-14 bg-white border-b border-gray-200 flex items-center px-4 gap-3 sticky top-0 z-30">
+        {/* Mobile: Page title */}
+        <h1 className="text-base font-semibold text-gray-900 flex-1 md:hidden truncate">
+          {getPageTitle(location.pathname)}
+        </h1>
+
+        {/* Desktop: Global Search */}
+        <div ref={searchRef} className="relative flex-1 max-w-md hidden md:block">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Search clients, cases..."
+              value={query}
+              onChange={(e) => handleSearch(e.target.value)}
+              onFocus={() => query.length >= 2 && hasResults && setSearchOpen(true)}
+              className="pl-9 pr-9 h-9 bg-gray-50 border-gray-200 text-sm focus-visible:ring-blue-500"
+            />
+            {query && (
+              <button
+                onClick={() => { setQuery(''); setSearchOpen(false); setResults({ clients: [], cases: [] }) }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          <SearchDropdown />
+        </div>
+
+        <div className="flex items-center gap-1 ml-auto">
+          {/* Mobile: Search icon button */}
+          <button
+            onClick={() => setMobileSearchOpen(true)}
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <Search className="w-5 h-5 text-gray-600" />
+          </button>
+
+          {/* Notification Bell */}
+          <div className="relative">
+            <button
+              className="relative flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors"
+              title="Upcoming Reminders"
+            >
+              <Bell className="w-5 h-5 text-gray-600" />
+              {upcomingCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] flex items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white px-1 leading-none">
+                  {upcomingCount > 9 ? '9+' : upcomingCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* New Button with dropdown */}
+          <div ref={newMenuRef} className="relative">
+            {/* Desktop: Full "New" button */}
+            <Button
+              size="sm"
+              onClick={() => setNewMenuOpen((v) => !v)}
+              className="gap-1.5 h-9 px-3 hidden md:flex"
+            >
+              <Plus className="w-4 h-4" />
+              New
+            </Button>
+
+            {/* Mobile: "+" icon button */}
+            <button
+              onClick={() => setNewMenuOpen((v) => !v)}
+              className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-5 h-5 text-white" />
+            </button>
+
+            {newMenuOpen && (
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-50 py-1 overflow-hidden">
+                {quickActions.map(({ label, icon: Icon, action }) => (
+                  <button
+                    key={label}
+                    onClick={() => {
+                      setNewMenuOpen(false)
+                      action()
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors text-left"
+                  >
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+    </>
   )
 }

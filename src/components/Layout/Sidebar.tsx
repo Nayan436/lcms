@@ -27,7 +27,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="flex h-screen w-64 flex-col bg-white border-r border-gray-200 fixed left-0 top-0 z-40">
+    <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-64 bg-white border-r border-gray-200 z-40">
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
         <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-600">
@@ -57,7 +57,7 @@ export default function Sidebar() {
             >
               <Icon
                 className={cn(
-                  'w-4.5 h-4.5 flex-shrink-0',
+                  'flex-shrink-0',
                   active ? 'text-blue-600' : 'text-gray-400'
                 )}
                 size={18}

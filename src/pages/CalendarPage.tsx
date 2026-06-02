@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -29,6 +29,17 @@ export default function CalendarPage() {
   const cases = useCases() ?? []
   const calendarRef = useRef<FullCalendar>(null)
 
+  // Detect mobile for initial view
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth < 768)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const [addModal, setAddModal] = useState(false)
   const [selectedDate, setSelectedDate] = useState('')
   const [form, setForm] = useState({
@@ -37,7 +48,7 @@ export default function CalendarPage() {
   })
   const [loading, setLoading] = useState(false)
 
-  // Build FullCalendar events — read hearings from DB directly (no live array dependency)
+  // Build FullCalendar events
   const events = useLiveQuery(async () => {
     const allHearings = await db.hearings.toArray()
     return Promise.all(allHearings.map(async (h) => {
@@ -124,14 +135,15 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="space-y-4 pb-8">
+    <div className="space-y-3 md:space-y-4 pb-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Calendar</h1>
           <p className="text-sm text-gray-500 mt-0.5">All hearings in one view</p>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Legend */}
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Legend — hidden on mobile */}
           <div className="hidden md:flex items-center gap-3 text-xs">
             {[
               { label: 'Scheduled', color: 'bg-blue-500' },
@@ -145,22 +157,42 @@ export default function CalendarPage() {
               </div>
             ))}
           </div>
-          <Button onClick={() => { setForm(f => ({ ...f, date: format(new Date(), 'yyyy-MM-dd') })); setAddModal(true) }} size="sm" className="bg-blue-600 hover:bg-blue-700">
-            + Add Hearing
+          <Button
+            onClick={() => { setForm(f => ({ ...f, date: format(new Date(), 'yyyy-MM-dd') })); setAddModal(true) }}
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 min-h-[44px]"
+          >
+            <span className="hidden sm:inline">+ Add Hearing</span>
+            <span className="sm:hidden">+</span>
           </Button>
         </div>
       </div>
 
+      {/* Mobile legend — compact pills */}
+      <div className="flex md:hidden items-center gap-2 overflow-x-auto pb-1 text-xs">
+        {[
+          { label: 'Scheduled', color: 'bg-blue-500' },
+          { label: 'Completed', color: 'bg-emerald-500' },
+          { label: 'Adjourned', color: 'bg-amber-500' },
+          { label: 'Cancelled', color: 'bg-gray-500' },
+        ].map(({ label, color }) => (
+          <div key={label} className="flex items-center gap-1 flex-shrink-0 bg-gray-50 px-2 py-1 rounded-full border border-gray-200">
+            <div className={`w-2 h-2 rounded-full ${color}`} />
+            <span className="text-gray-600 text-xs">{label}</span>
+          </div>
+        ))}
+      </div>
+
       {/* Calendar */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-2 md:p-4">
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
-          initialView="dayGridMonth"
+          initialView={isMobile ? 'listWeek' : 'dayGridMonth'}
           headerToolbar={{
             left: 'prev,next today',
             center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
+            right: isMobile ? 'listWeek,dayGridMonth' : 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
           }}
           buttonText={{ today: 'Today', month: 'Month', week: 'Week', day: 'Day', list: 'List' }}
           events={events ?? []}
@@ -168,8 +200,8 @@ export default function CalendarPage() {
           dateClick={handleDateClick}
           eventContent={renderEventContent}
           height="auto"
-          aspectRatio={1.8}
-          dayMaxEvents={3}
+          aspectRatio={isMobile ? 1.2 : 1.8}
+          dayMaxEvents={isMobile ? 2 : 3}
           nowIndicator
           editable={false}
           selectable={true}
@@ -186,9 +218,9 @@ export default function CalendarPage() {
         />
       </div>
 
-      {/* Add Hearing Modal */}
+      {/* Add Hearing Modal — full screen on mobile */}
       <Dialog open={addModal} onOpenChange={open => !open && setAddModal(false)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[100vw] w-full sm:max-w-lg h-full sm:h-auto rounded-none sm:rounded-xl overflow-y-auto sm:max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Schedule Hearing</DialogTitle>
             <DialogDescription>
@@ -213,19 +245,19 @@ export default function CalendarPage() {
               </div>
               <div>
                 <Label>Date *</Label>
-                <Input className="mt-1" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required />
+                <Input className="mt-1 h-11" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required />
               </div>
               <div>
                 <Label>Time *</Label>
-                <Input className="mt-1" type="time" value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} required />
+                <Input className="mt-1 h-11" type="time" value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} required />
               </div>
               <div>
                 <Label>Court Number</Label>
-                <Input className="mt-1" placeholder="Court No. 5" value={form.courtNumber} onChange={e => setForm(f => ({ ...f, courtNumber: e.target.value }))} />
+                <Input className="mt-1 h-11" placeholder="Court No. 5" value={form.courtNumber} onChange={e => setForm(f => ({ ...f, courtNumber: e.target.value }))} />
               </div>
               <div>
                 <Label>Judge Name</Label>
-                <Input className="mt-1" placeholder="Hon. Justice..." value={form.judgeName} onChange={e => setForm(f => ({ ...f, judgeName: e.target.value }))} />
+                <Input className="mt-1 h-11" placeholder="Hon. Justice..." value={form.judgeName} onChange={e => setForm(f => ({ ...f, judgeName: e.target.value }))} />
               </div>
               <div>
                 <Label>Status</Label>
@@ -236,12 +268,12 @@ export default function CalendarPage() {
               </div>
               <div className="col-span-2">
                 <Label>Remarks</Label>
-                <Input className="mt-1" placeholder="Any remarks..." value={form.remarks} onChange={e => setForm(f => ({ ...f, remarks: e.target.value }))} />
+                <Input className="mt-1 h-11" placeholder="Any remarks..." value={form.remarks} onChange={e => setForm(f => ({ ...f, remarks: e.target.value }))} />
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setAddModal(false)}>Cancel</Button>
-              <Button type="submit" disabled={loading || !form.caseId || !form.date} className="bg-blue-600 hover:bg-blue-700">
+              <Button type="button" variant="outline" onClick={() => setAddModal(false)} className="min-h-[44px]">Cancel</Button>
+              <Button type="submit" disabled={loading || !form.caseId || !form.date} className="bg-blue-600 hover:bg-blue-700 min-h-[44px]">
                 {loading ? 'Scheduling...' : 'Schedule Hearing'}
               </Button>
             </DialogFooter>
